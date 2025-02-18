@@ -1,15 +1,26 @@
 const Gameboard = (function () {
-	const board = ['', '', '', '', '', '', '', '', '']; // 1D array instead of 2D
+	const rows = 3;
+	const columns = 3;
+	const board = [];
+	// const board = ['', '', '', '', '', '', '', '', '']; // 1D array instead of 2D
+
+	// 2D array
+	for (let i = 0; i < rows; i++) {
+		board[i] = [];
+		for (let j = 0; j < columns; j++) {
+			board[i].push('');
+		}
+		board.push[i];
+	}
 
 	const getBoard = () => board;
 
-	function setCell(index, playerMark) {
-		if (index >= board.length) {
+	function setCell(column, row, playerMark) {
+		if (column >= columns || row >= rows) {
 			console.log('out of bounds');
 		} else {
-			let targetCell = board[index];
-			if (targetCell === '') {
-				board[index] = playerMark;
+			if (board[row][column] === '') {
+				board[row][column] = playerMark;
 			} else {
 				console.log("can't do that");
 			}
@@ -19,27 +30,72 @@ const Gameboard = (function () {
 
 	function checkWin() {
 		const winConditions = [
-			[0, 1, 2], // Top row
-			[3, 4, 5], // Middle row
-			[6, 7, 8], // Bottom row
-			[0, 3, 6], // Left column
-			[1, 4, 7], // Middle column
-			[2, 5, 8], // Right column
-			[0, 4, 8], // Top-left to bottom-right diagonal
-			[2, 4, 6], // Top-right to bottom-left diagonal
+			// Rows
+			[
+				[0, 0],
+				[1, 0],
+				[2, 0],
+			],
+			[
+				[0, 1],
+				[1, 1],
+				[2, 1],
+			],
+			[
+				[0, 2],
+				[1, 2],
+				[2, 2],
+			],
+			// Columns
+			[
+				[0, 0],
+				[0, 1],
+				[0, 2],
+			],
+			[
+				[1, 0],
+				[1, 1],
+				[1, 2],
+			],
+			[
+				[2, 0],
+				[2, 1],
+				[2, 2],
+			],
+			// Diagonals
+			[
+				[0, 0],
+				[1, 1],
+				[2, 2],
+			],
+			[
+				[0, 2],
+				[1, 1],
+				[2, 0],
+			],
 		];
 
 		for (const condition of winConditions) {
 			const [a, b, c] = condition;
-			if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-				return board[a]; // Return the winning marker
+			const [colA, rowA] = a;
+			const [colB, rowB] = b;
+			const [colC, rowC] = c;
+			if (
+				board[colA][rowA] &&
+				board[colA][rowA] === board[colB][rowB] &&
+				board[colA][rowA] === board[colC][rowC]
+			) {
+				return board[colA][rowA]; // Return the winning marker
 			}
 		}
 		return null; // No winner yet
 	}
 
 	function checkTie() {
-		return board.every((cell) => cell !== '');
+		for (const row of board) {
+			return row.every((cell) => cell !== '');
+		}
+		// return board.every((cell) => cell !== '');
 	}
 
 	function resetBoard() {
@@ -84,9 +140,9 @@ const GameController = (function () {
 		}
 	}
 
-	function playRound(index) {
+	function playRound(row, column) {
 		const currentPlayerMark = getCurrentPlayer();
-		board.setCell(index, currentPlayerMark);
+		board.setCell(row, column, currentPlayerMark);
 		const winner = checkWin();
 		if (winner) {
 			console.log('winner: ' + winner);
@@ -96,6 +152,7 @@ const GameController = (function () {
 			console.log('tie');
 			return;
 		}
+		console.log(board.getBoard());
 		switchTurn();
 	}
 
@@ -109,6 +166,8 @@ const GameController = (function () {
 })();
 
 const DisplayController = (function () {})(); // Handles DOM manipulation
+
+console.log("Instructions: Place marker with 'game.playRound(x,y)");
 
 const game = GameController;
 game.start();
