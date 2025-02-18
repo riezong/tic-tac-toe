@@ -2,7 +2,6 @@ const Gameboard = (function () {
 	const rows = 3;
 	const columns = 3;
 	const board = [];
-	// const board = ['', '', '', '', '', '', '', '', '']; // 1D array instead of 2D
 
 	// 2D array
 	for (let i = 0; i < rows; i++) {
@@ -18,16 +17,19 @@ const Gameboard = (function () {
 	function setCell(column, row, playerMark) {
 		if (column >= columns || row >= rows) {
 			console.log('out of bounds');
+			return false; // Invalid move
 		} else {
 			if (board[row][column] === '') {
 				board[row][column] = playerMark;
+				return true; // Valid move
 			} else {
 				console.log("can't do that");
+				return false; // Invalid move
 			}
 		}
-		return 0, playerMark;
 	}
 
+	// Had help here
 	function checkWin() {
 		const winConditions = [
 			// Rows
@@ -91,6 +93,7 @@ const Gameboard = (function () {
 		return null; // No winner yet
 	}
 
+	// Had help here
 	function checkTie() {
 		for (const row of board) {
 			return row.every((cell) => cell !== '');
@@ -99,7 +102,13 @@ const Gameboard = (function () {
 	}
 
 	function resetBoard() {
-		board.splice(0, 9, '', '', '', '', '', '', '', '', '');
+		for (let i = 0; i < rows; i++) {
+			board[i] = [];
+			for (let j = 0; j < columns; j++) {
+				board[i].push('');
+			}
+			board.push[i];
+		}
 	}
 
 	return { getBoard, setCell, checkWin, checkTie, resetBoard };
@@ -142,18 +151,22 @@ const GameController = (function () {
 
 	function playRound(row, column) {
 		const currentPlayerMark = getCurrentPlayer();
-		board.setCell(row, column, currentPlayerMark);
-		const winner = checkWin();
-		if (winner) {
-			console.log('winner: ' + winner);
-			return;
+		// Wtf so this runs the function AND reads the return value at the same time?
+		if (board.setCell(row, column, currentPlayerMark)) {
+			const winner = checkWin();
+			if (winner) {
+				console.log('winner: ' + winner);
+				return;
+			}
+			if (checkTie()) {
+				console.log('tie');
+				return;
+			}
+			console.log(board.getBoard());
+			switchTurn();
+		} else {
+			console.log('invalid move, try again');
 		}
-		if (checkTie()) {
-			console.log('tie');
-			return;
-		}
-		console.log(board.getBoard());
-		switchTurn();
 	}
 
 	const switchTurn = () => turnCount++;
@@ -162,7 +175,12 @@ const GameController = (function () {
 
 	const checkTie = () => board.checkTie();
 
-	return { start, playRound };
+	function resetBoard() {
+		board.resetBoard();
+		console.log(board.getBoard());
+	}
+
+	return { start, playRound, resetBoard };
 })();
 
 const DisplayController = (function () {})(); // Handles DOM manipulation
