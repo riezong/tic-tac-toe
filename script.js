@@ -4,17 +4,17 @@ const Gameboard = (function () {
 	const getBoard = () => board;
 
 	function setCell(index, playerMark) {
-		if (index >= 9) {
+		if (index >= board.length) {
 			console.log('out of bounds');
 		} else {
 			let targetCell = board[index];
-			if (targetCell === 0) {
+			if (targetCell === '') {
 				board[index] = playerMark;
 			} else {
 				console.log("can't do that");
 			}
 		}
-		return 0;
+		return 0, playerMark;
 	}
 
 	function checkWin() {
@@ -30,43 +30,23 @@ const Gameboard = (function () {
 		];
 
 		for (const condition of winConditions) {
-			let length = condition.length;
-			for (let l = 0; l < length; l++) {
-				let index = condition[l];
-
-				// Check if empty
-				if (board[index] == false) {
-					console.log(board[index]);
-				} else {
-					console.log('filled');
-				}
+			const [a, b, c] = condition;
+			if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+				return board[a]; // Return the winning marker
 			}
 		}
+		return null; // No winner yet
 	}
 
 	function checkTie() {
-		let length = board.length;
-		let emptyCounter = 0;
-		for (let i = 0; i < length; i++) {
-			// Check if empty
-			if (board[i] == false) {
-				emptyCounter++;
-				console.log(emptyCounter);
-			} else {
-			}
-		}
-
-		if (emptyCounter == 0) {
-			console.log('board is full');
-		}
+		return board.every((cell) => cell !== '');
 	}
-	checkTie();
 
 	function resetBoard() {
-		board = ['', '', '', '', '', '', '', '', ''];
+		board.splice(0, 9, '', '', '', '', '', '', '', '', '');
 	}
 
-	return { getBoard, setCell, resetBoard };
+	return { getBoard, setCell, checkWin, checkTie, resetBoard };
 })();
 
 function player(name) {
@@ -76,6 +56,8 @@ function player(name) {
 
 const GameController = (function () {
 	let turnCount = 1;
+
+	// Create player objects
 	const player1 = player('Andrew');
 	const p1mark = player1.marker;
 	console.log(player1);
@@ -84,17 +66,9 @@ const GameController = (function () {
 	console.log(player2);
 	let playerMark;
 
-	const board = Gameboard(); // Create an instance of the gameboard
+	const board = Gameboard; // Create an instance of the gameboard
 
 	const start = () => console.log(board.getBoard()); // Call getBoard() and log the result
-
-	function playRound(row, column) {
-		getCurrentPlayer();
-		board.setCell(column, row, playerMark);
-		checkWin();
-		checkTie();
-		switchTurn();
-	}
 
 	function getCurrentPlayer() {
 		if (turnCount % 2 == 1) {
@@ -110,18 +84,31 @@ const GameController = (function () {
 		}
 	}
 
+	function playRound(index) {
+		const currentPlayerMark = getCurrentPlayer();
+		board.setCell(index, currentPlayerMark);
+		const winner = checkWin();
+		if (winner) {
+			console.log('winner: ' + winner);
+			return;
+		}
+		if (checkTie()) {
+			console.log('tie');
+			return;
+		}
+		switchTurn();
+	}
+
 	const switchTurn = () => turnCount++;
 
-	function checkWin() {}
-	function checkTie() {}
+	const checkWin = () => board.checkWin();
+
+	const checkTie = () => board.checkTie();
 
 	return { start, playRound };
 })();
 
 const DisplayController = (function () {})(); // Handles DOM manipulation
 
-const game = GameController();
+const game = GameController;
 game.start();
-game.playRound(1, 1);
-game.playRound(1, 2);
-game.playRound(1, 0);
