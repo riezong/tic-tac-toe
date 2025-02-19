@@ -1,26 +1,27 @@
 const Gameboard = (function () {
-	const rows = 3;
-	const columns = 3;
-	const board = [];
+	// const rows = 3;
+	// const columns = 3;
+	const board = ['', '', '', '', '', '', '', '', ''];
 
-	// 2D array
-	for (let i = 0; i < rows; i++) {
-		board[i] = [];
-		for (let j = 0; j < columns; j++) {
-			board[i].push('');
-		}
-		board.push[i];
-	}
+	// // 2D array
+	// for (let i = 0; i < rows; i++) {
+	// 	board[i] = [];
+	// 	for (let j = 0; j < columns; j++) {
+	// 		board[i].push('');
+	// 	}
+	// 	board.push[i];
+	// }
 
 	const getBoard = () => board;
 
-	function setCell(column, row, playerMark) {
-		if (column >= columns || row >= rows) {
+	function setCell(index, playerMark) {
+		if (index >= 9) {
 			console.log('out of bounds');
 			return false; // Invalid move
 		} else {
-			if (board[row][column] === '') {
-				board[row][column] = playerMark;
+			let targetCell = board[index];
+			if (targetCell === '') {
+				board[index] = playerMark;
 				return true; // Valid move
 			} else {
 				console.log("can't do that");
@@ -29,65 +30,38 @@ const Gameboard = (function () {
 		}
 	}
 
+	// function setCell(column, row, playerMark) {
+	// 	if (column >= columns || row >= rows) {
+	// 		console.log('out of bounds');
+	// 		return false; // Invalid move
+	// 	} else {
+	// 		if (board[row][column] === '') {
+	// 			board[row][column] = playerMark;
+	// 			return true; // Valid move
+	// 		} else {
+	// 			console.log("can't do that");
+	// 			return false; // Invalid move
+	// 		}
+	// 	}
+	// }
+
 	// Had help here
 	function checkWin() {
 		const winConditions = [
-			// Rows
-			[
-				[0, 0],
-				[1, 0],
-				[2, 0],
-			],
-			[
-				[0, 1],
-				[1, 1],
-				[2, 1],
-			],
-			[
-				[0, 2],
-				[1, 2],
-				[2, 2],
-			],
-			// Columns
-			[
-				[0, 0],
-				[0, 1],
-				[0, 2],
-			],
-			[
-				[1, 0],
-				[1, 1],
-				[1, 2],
-			],
-			[
-				[2, 0],
-				[2, 1],
-				[2, 2],
-			],
-			// Diagonals
-			[
-				[0, 0],
-				[1, 1],
-				[2, 2],
-			],
-			[
-				[0, 2],
-				[1, 1],
-				[2, 0],
-			],
+			[0, 1, 2], // Top row
+			[3, 4, 5], // Middle row
+			[6, 7, 8], // Bottom row
+			[0, 3, 6], // Left column
+			[1, 4, 7], // Middle column
+			[2, 5, 8], // Right column
+			[0, 4, 8], // Top-left to bottom-right diagonal
+			[2, 4, 6], // Top-right to bottom-left diagonal
 		];
 
 		for (const condition of winConditions) {
 			const [a, b, c] = condition;
-			const [colA, rowA] = a;
-			const [colB, rowB] = b;
-			const [colC, rowC] = c;
-			if (
-				board[colA][rowA] &&
-				board[colA][rowA] === board[colB][rowB] &&
-				board[colA][rowA] === board[colC][rowC]
-			) {
-				return board[colA][rowA]; // Return the winning marker
+			if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+				return board[a]; // Return the winning marker
 			}
 		}
 		return null; // No winner yet
@@ -95,20 +69,11 @@ const Gameboard = (function () {
 
 	// Had help here
 	function checkTie() {
-		for (const row of board) {
-			return row.every((cell) => cell !== '');
-		}
-		// return board.every((cell) => cell !== '');
+		return board.every((cell) => cell !== '');
 	}
 
 	function resetBoard() {
-		for (let i = 0; i < rows; i++) {
-			board[i] = [];
-			for (let j = 0; j < columns; j++) {
-				board[i].push('');
-			}
-			board.push[i];
-		}
+		board.splice(0, 9, '', '', '', '', '', '', '', '', '');
 	}
 
 	return { getBoard, setCell, checkWin, checkTie, resetBoard };
@@ -120,6 +85,7 @@ function player(name) {
 }
 
 const GameController = (function () {
+	const Board = Gameboard; // Create an instance of the gameboard
 	let turnCount = 1;
 
 	// Create player objects
@@ -131,9 +97,7 @@ const GameController = (function () {
 	console.log(player2);
 	let playerMark;
 
-	const board = Gameboard; // Create an instance of the gameboard
-
-	const start = () => console.log(board.getBoard()); // Call getBoard() and log the result
+	const start = () => console.log(Board.getBoard()); // Call getBoard() and log the result
 
 	function getCurrentPlayer() {
 		if (turnCount % 2 == 1) {
@@ -149,10 +113,10 @@ const GameController = (function () {
 		}
 	}
 
-	function playRound(row, column) {
+	function playRound(index) {
 		const currentPlayerMark = getCurrentPlayer();
 		// Wtf so this runs the function AND reads the return value at the same time?
-		if (board.setCell(row, column, currentPlayerMark)) {
+		if (Board.setCell(index, currentPlayerMark)) {
 			const winner = checkWin();
 			if (winner) {
 				console.log('winner: ' + winner);
@@ -162,7 +126,7 @@ const GameController = (function () {
 				console.log('tie');
 				return;
 			}
-			console.log(board.getBoard());
+			console.log(Board.getBoard());
 			switchTurn();
 		} else {
 			console.log('invalid move, try again');
@@ -171,21 +135,65 @@ const GameController = (function () {
 
 	const switchTurn = () => turnCount++;
 
-	const checkWin = () => board.checkWin();
+	const checkWin = () => Board.checkWin();
 
-	const checkTie = () => board.checkTie();
+	const checkTie = () => Board.checkTie();
 
 	function resetBoard() {
-		board.resetBoard();
-		console.log(board.getBoard());
+		Board.resetBoard();
+		console.log(Board.getBoard());
 	}
 
 	return { start, playRound, resetBoard };
 })();
 
-const DisplayController = (function () {})(); // Handles DOM manipulation
+// Handles DOM manipulation
+const DisplayController = (function () {
+	const game = Gameboard;
+
+	const gameBoard = document.querySelector('#gameBoard');
+
+	function clearBoard() {
+		while (gameBoard.firstChild) {
+			gameBoard.removeChild(gameBoard.lastChild);
+		}
+	}
+	function printBoard() {
+		const getBoard = game.getBoard();
+		// console.log(typeof getBoard);
+		const ul = document.createElement('ul');
+		let cellIndex = 0;
+		for (const cell of getBoard) {
+			const li = document.createElement('li');
+			li.classList.add('cell');
+			li.setAttribute('id', cellIndex);
+			li.addEventListener('click', (event) => eventHandler(event));
+			cellIndex++;
+			gameBoard.appendChild(li);
+		}
+	}
+
+	function refreshBoard() {
+		clearBoard();
+		printBoard();
+	}
+
+	function eventHandler(event) {
+		const target = event.target;
+		console.log(target.getAttribute('id'));
+		// cell.textContent = game.playerMark;
+		// console.log(playerMark);
+		refreshBoard();
+	}
+
+	printBoard();
+})();
+
+function handleClick() {}
 
 console.log("Instructions: Place marker with 'game.playRound(x,y)");
 
 const game = GameController;
 game.start();
+
+const renderGame = DisplayController;
