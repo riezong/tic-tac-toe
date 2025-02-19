@@ -1,16 +1,5 @@
 const Gameboard = (function () {
-	// const rows = 3;
-	// const columns = 3;
 	const board = ['', '', '', '', '', '', '', '', ''];
-
-	// // 2D array
-	// for (let i = 0; i < rows; i++) {
-	// 	board[i] = [];
-	// 	for (let j = 0; j < columns; j++) {
-	// 		board[i].push('');
-	// 	}
-	// 	board.push[i];
-	// }
 
 	const getBoard = () => board;
 
@@ -29,21 +18,6 @@ const Gameboard = (function () {
 			}
 		}
 	}
-
-	// function setCell(column, row, playerMark) {
-	// 	if (column >= columns || row >= rows) {
-	// 		console.log('out of bounds');
-	// 		return false; // Invalid move
-	// 	} else {
-	// 		if (board[row][column] === '') {
-	// 			board[row][column] = playerMark;
-	// 			return true; // Valid move
-	// 		} else {
-	// 			console.log("can't do that");
-	// 			return false; // Invalid move
-	// 		}
-	// 	}
-	// }
 
 	// Had help here
 	function checkWin() {
@@ -84,9 +58,30 @@ function player(name) {
 	return { name, marker };
 }
 
+const createCounter = function () {
+	let count = 1; // Variable in the outer function's scope
+
+	function increment() {
+		newCount = count + 1;
+		count = newCount;
+		// display();
+	}
+
+	function display() {
+		console.log(count);
+	}
+
+	function value() {
+		return count;
+	}
+
+	return { increment, display, value }; // Return an object with the functions
+};
+
 const GameController = (function () {
 	const Board = Gameboard; // Create an instance of the gameboard
-	let turnCount = 1;
+	const turnCounter = createCounter();
+	const turnCount = turnCounter.display();
 
 	// Create player objects
 	const player1 = player('Andrew');
@@ -100,13 +95,13 @@ const GameController = (function () {
 	const start = () => console.log(Board.getBoard()); // Call getBoard() and log the result
 
 	function getCurrentPlayer() {
-		if (turnCount % 2 == 1) {
-			console.log('turn: ' + turnCount);
+		if (turnCounter.value() % 2 == 1) {
+			console.log('turn: ' + turnCounter.value());
 			playerMark = p1mark;
 			// turnCount++;
 			return playerMark;
 		} else {
-			console.log('turn: ' + turnCount);
+			console.log('turn: ' + turnCounter.value());
 			playerMark = p2mark;
 			// turnCount++;
 			return playerMark;
@@ -133,7 +128,7 @@ const GameController = (function () {
 		}
 	}
 
-	const switchTurn = () => turnCount++;
+	const switchTurn = () => turnCounter.increment();
 
 	const checkWin = () => Board.checkWin();
 
@@ -144,23 +139,19 @@ const GameController = (function () {
 		console.log(Board.getBoard());
 	}
 
-	return { start, playRound, resetBoard };
+	return { start, getCurrentPlayer, playRound, resetBoard };
 })();
 
 // Handles DOM manipulation
 const DisplayController = (function () {
-	const game = Gameboard;
+	const Board = Gameboard; // Create an instance of the gameboard
+	const Controller = GameController;
 
 	const gameBoard = document.querySelector('#gameBoard');
 
-	function clearBoard() {
-		while (gameBoard.firstChild) {
-			gameBoard.removeChild(gameBoard.lastChild);
-		}
-	}
 	function printBoard() {
-		const getBoard = game.getBoard();
-		// console.log(typeof getBoard);
+		const getBoard = Board.getBoard();
+
 		const ul = document.createElement('ul');
 		let cellIndex = 0;
 		for (const cell of getBoard) {
@@ -173,16 +164,23 @@ const DisplayController = (function () {
 		}
 	}
 
+	function clearBoard() {
+		while (gameBoard.firstChild) {
+			gameBoard.removeChild(gameBoard.lastChild);
+		}
+	}
+
 	function refreshBoard() {
 		clearBoard();
 		printBoard();
 	}
 
 	function eventHandler(event) {
+		const currentPlayerMark = Controller.getCurrentPlayer();
 		const target = event.target;
 		console.log(target.getAttribute('id'));
 		// cell.textContent = game.playerMark;
-		// console.log(playerMark);
+		console.log(currentPlayerMark);
 		refreshBoard();
 	}
 
