@@ -79,9 +79,8 @@ const createCounter = function () {
 };
 
 const GameController = (function () {
-	const Board = Gameboard; // Create an instance of the gameboard
+	const board = Gameboard; // Create an instance of the gameboard
 	const turnCounter = createCounter();
-	const turnCount = turnCounter.display();
 
 	// Create player objects
 	const player1 = player('Andrew');
@@ -92,7 +91,7 @@ const GameController = (function () {
 	console.log(player2);
 	let playerMark;
 
-	const start = () => console.log(Board.getBoard()); // Call getBoard() and log the result
+	const start = () => console.log(board.getBoard()); // Call getBoard() and log the result
 
 	function getCurrentPlayer() {
 		if (turnCounter.value() % 2 == 1) {
@@ -108,10 +107,12 @@ const GameController = (function () {
 		}
 	}
 
+	const switchPlayer = () => turnCounter.increment();
+
 	function playRound(index) {
 		const currentPlayerMark = getCurrentPlayer();
 		// Wtf so this runs the function AND reads the return value at the same time?
-		if (Board.setCell(index, currentPlayerMark)) {
+		if (board.setCell(index, currentPlayerMark)) {
 			const winner = checkWin();
 			if (winner) {
 				console.log('winner: ' + winner);
@@ -121,30 +122,34 @@ const GameController = (function () {
 				console.log('tie');
 				return;
 			}
-			console.log(Board.getBoard());
-			switchTurn();
+			console.log(board.getBoard());
+			switchPlayer();
 		} else {
 			console.log('invalid move, try again');
 		}
 	}
 
-	const switchTurn = () => turnCounter.increment();
+	const checkWin = () => board.checkWin();
 
-	const checkWin = () => Board.checkWin();
-
-	const checkTie = () => Board.checkTie();
+	const checkTie = () => board.checkTie();
 
 	function resetBoard() {
-		Board.resetBoard();
-		console.log(Board.getBoard());
+		board.resetBoard();
+		console.log(board.getBoard());
 	}
 
-	return { start, getCurrentPlayer, playRound, resetBoard };
+	return {
+		start,
+		getCurrentPlayer,
+		switchPlayer,
+		playRound,
+		resetBoard,
+	};
 })();
 
 // Handles DOM manipulation
 const DisplayController = (function () {
-	const Board = Gameboard; // Create an instance of the gameboard
+	const Board = Gameboard;
 	const Controller = GameController;
 
 	const gameBoard = document.querySelector('#gameBoard');
@@ -178,16 +183,18 @@ const DisplayController = (function () {
 	function eventHandler(event) {
 		const currentPlayerMark = Controller.getCurrentPlayer();
 		const target = event.target;
-		console.log(target.getAttribute('id'));
+		const cell = Number(target.getAttribute('id'));
+		console.log(cell);
 		// cell.textContent = game.playerMark;
 		console.log(currentPlayerMark);
+
+		Controller.playRound(cell);
+
 		refreshBoard();
 	}
 
 	printBoard();
 })();
-
-function handleClick() {}
 
 console.log("Instructions: Place marker with 'game.playRound(x,y)");
 
