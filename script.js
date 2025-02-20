@@ -273,6 +273,10 @@ const DisplayController = function () {
 		while (gameBoard.firstChild) {
 			gameBoard.removeChild(gameBoard.lastChild);
 		}
+
+		while (turnCounter.firstChild) {
+			turnCounter.removeChild(turnCounter.lastChild);
+		}
 	}
 
 	function refreshBoard() {
