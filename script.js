@@ -3,14 +3,14 @@ const Gameboard = (function () {
 
 	const getBoard = () => board;
 
-	function setCell(index, playerMark) {
-		if (index >= 9) {
+	function setCell(cellIndex, playerMark) {
+		if (cellIndex >= 9) {
 			console.log('out of bounds');
 			return false; // Invalid move
 		} else {
-			let targetCell = board[index];
+			let targetCell = board[cellIndex];
 			if (targetCell === '') {
-				board[index] = playerMark;
+				board[cellIndex] = playerMark;
 				return true; // Valid move
 			} else {
 				console.log("can't do that");
@@ -66,32 +66,50 @@ const Players = (function () {
 	let p2mark;
 
 	// Set player 1
-	const SetPlayer1 = document.getElementById('setPlayer1');
-	SetPlayer1.addEventListener('click', () => {
+	const setPlayer1InputButton = document.getElementById('setPlayer1');
+	setPlayer1InputButton.addEventListener('click', () => setPlayer1());
+	const setPlayer1 = function () {
 		player1Name = document.getElementById('player1').value;
-		let player1 = player(player1Name);
-		p1mark = player1.marker;
-		console.log('Player 1:', player1);
+		let newPlayer1 = player(player1Name);
+		p1mark = newPlayer1.marker;
+		console.log('Player 1:', newPlayer1);
 		// return p1mark;
-	});
+
+		const player1 = document.querySelector('.player1');
+		if (player1.lastChild) {
+			player1.removeChild(player1.lastChild);
+		}
+		const player1P = document.createElement('p');
+		player1P.textContent = 'Player 1: ' + player1Name;
+		player1.appendChild(player1P);
+	};
 
 	// Set player 2
-	const SetPlayer2 = document.getElementById('setPlayer2');
-	SetPlayer2.addEventListener('click', () => {
+	const setPlayer2InputButton = document.getElementById('setPlayer2');
+	setPlayer2InputButton.addEventListener('click', () => setPlayer2());
+	const setPlayer2 = function () {
 		player2Name = document.getElementById('player2').value;
-		let player2 = player(player2Name);
-		p2mark = player2.marker;
-		console.log('Player 2:', player2);
+		let newPlayer2 = player(player2Name);
+		p2mark = newPlayer2.marker;
+		console.log('Player 2:', newPlayer2);
 		// return p2mark;
-	});
+
+		const player2 = document.querySelector('.player2');
+		if (player2.lastChild) {
+			player2.removeChild(player2.lastChild);
+		}
+		const player2P = document.createElement('p');
+		player2P.textContent = 'Player 2: ' + player2Name;
+		player2.appendChild(player2P);
+	};
 
 	const getPlayerMarks = () => ({ p1mark, p2mark });
 
-	return { getPlayerMarks };
+	return { getPlayerMarks, setPlayer1, setPlayer2 };
 })();
 
 const createCounter = function () {
-	let count = 1; // Variable in the outer function's scope
+	let count = 0; // Variable in the outer function's scope
 
 	function increment() {
 		newCount = count + 1;
@@ -100,7 +118,7 @@ const createCounter = function () {
 	}
 
 	function reset() {
-		count = 1;
+		count = 0;
 	}
 
 	function display() {
@@ -115,13 +133,13 @@ const createCounter = function () {
 };
 
 const GameController = (function () {
-	const board = Gameboard; // Create an instance of the gameboard
+	const gameboard = Gameboard; // Create an instance of the gameboard
 	const turnCounter = createCounter();
 	let gameStart = false;
 	let gameOver = false;
 
 	const start = () => {
-		console.log(board.getBoard()); // Call getBoard() and log the result
+		console.log(gameboard.getBoard()); // Call getBoard() and log the result
 		getMarks();
 	};
 
@@ -136,37 +154,32 @@ const GameController = (function () {
 	};
 
 	function getCurrentPlayer() {
-		if (turnCounter.value() % 2 === 1) {
+		if (turnCounter.value() % 2 == 0) {
 			console.log('turn: ' + turnCounter.value());
 			playerMark = p1mark;
 			return playerMark;
 		} else {
-			if (turnCounter.value() % 2 == 1) {
-				console.log('turn: ' + turnCounter.value());
-				playerMark = p1mark;
-				return playerMark;
-			} else {
-				console.log('turn: ' + turnCounter.value());
-				playerMark = p2mark;
-				return playerMark;
-			}
+			console.log('turn: ' + turnCounter.value());
+			playerMark = p2mark;
+			return playerMark;
 		}
 	}
 
-	const switchPlayer = () => turnCounter.increment();
+	const switchTurn = () => turnCounter.increment();
 
-	function playRound(index) {
+	function playRound(cellIndex) {
 		if (gameOver == false) {
+			// getMarks();
 			if (!p1mark || !p2mark) {
 				// Check if marks are set
 				console.log('Player marks not set yet!');
-				getMarks();
 				return null; // Or handle this case appropriately
 			}
 
 			const currentPlayerMark = getCurrentPlayer();
 			// Wtf so this runs the function AND reads the return value at the same time?
-			if (board.setCell(index, currentPlayerMark)) {
+			if (gameboard.setCell(cellIndex, currentPlayerMark)) {
+				switchTurn();
 				const winner = checkWin();
 				if (winner) {
 					console.log('winner: ' + winner);
@@ -178,47 +191,70 @@ const GameController = (function () {
 					gameOver = true;
 					return;
 				}
-				console.log(board.getBoard());
-				switchPlayer();
+				console.log(gameboard.getBoard());
 			} else {
 				console.log('invalid move, try again');
 			}
 		} else {
-			console.log('game over');
+			// console.log('game over');
 		}
 	}
 
-	const checkWin = () => board.checkWin();
+	const checkWin = () => gameboard.checkWin();
 
-	const checkTie = () => board.checkTie();
+	const checkTie = () => gameboard.checkTie();
+
+	function gameOverValue() {
+		return gameOver;
+	}
 
 	function resetBoard() {
-		board.resetBoard();
+		gameboard.resetBoard();
 		turnCounter.reset();
 		getMarks();
-		console.log(board.getBoard());
+		console.log(gameboard.getBoard());
 		gameOver = false;
 	}
 
 	return {
 		start,
+		getMarks,
+		turnCounter,
 		getCurrentPlayer,
-		switchPlayer,
+		switchTurn,
 		playRound,
 		resetBoard,
-		gameOver,
+		gameOverValue,
 	};
 })();
 
 // Handles DOM manipulation
 const DisplayController = function () {
-	const Board = Gameboard;
-	const Controller = GameController;
+	const gameboard = Gameboard;
+	const controller = GameController;
+
+	const turnCounter = document.querySelector('.turnCounter');
+	const turnCounterP = document.createElement('p');
+	turnCounterP.textContent = 'Turn: ' + controller.turnCounter.value();
+	turnCounter.appendChild(turnCounterP);
+
+	const gameOverMsg = document.createElement('p');
 
 	const gameBoard = document.querySelector('#gameBoard');
-
 	function printBoard() {
-		const getBoard = Board.getBoard();
+		const getBoard = gameboard.getBoard();
+
+		if (controller.gameOverValue() != true) {
+			console.log(controller.gameOverValue());
+			// turnCounter.removeChild(turnCounter.lastChild);
+			turnCounterP.textContent = 'Turn: ' + controller.turnCounter.value();
+			turnCounter.appendChild(turnCounterP);
+		} else {
+			console.log('game over');
+			// turnCounter.removeChild(turnCounter.lastChild);
+			gameOverMsg.textContent = 'GG';
+			turnCounter.appendChild(gameOverMsg);
+		}
 
 		const ul = document.createElement('ul');
 		let cellIndex = 0;
@@ -249,7 +285,27 @@ const DisplayController = function () {
 		const target = event.target;
 		const cell = Number(target.getAttribute('id'));
 
-		Controller.playRound(cell);
+		if (!p1mark) {
+			const player1 = document.querySelector('.player1');
+			if (player1.lastChild) {
+				player1.removeChild(player1.lastChild);
+			}
+			const player1P = document.createElement('p');
+			player1P.textContent = 'Player 1: NOT SET';
+			player1.appendChild(player1P);
+		}
+
+		if (!p2mark) {
+			const player2 = document.querySelector('.player2');
+			if (player2.lastChild) {
+				player2.removeChild(player2.lastChild);
+			}
+			const player2P = document.createElement('p');
+			player2P.textContent = 'Player 2: NOT SET';
+			player2.appendChild(player2P);
+		}
+
+		controller.playRound(cell);
 
 		refreshBoard();
 	}
@@ -265,6 +321,7 @@ const GameUI = (() => {
 
 	const StartGame = document.getElementById('StartGame');
 	StartGame.addEventListener('click', () => {
+		game.getMarks();
 		// Prevent starting multiple games simultaneously
 		if (game.gameStart != true) {
 			const gameBoard = document.querySelector('#gameBoard');
@@ -291,8 +348,8 @@ const GameUI = (() => {
 		game.start();
 	};
 
-	const play = (index) => {
-		game.playRound(index);
+	const play = (cellIndex) => {
+		game.playRound(cellIndex);
 		displayControllerInstance.refreshBoard();
 	};
 
