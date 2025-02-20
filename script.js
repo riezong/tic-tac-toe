@@ -81,6 +81,8 @@ const createCounter = function () {
 const GameController = (function () {
 	const board = Gameboard; // Create an instance of the gameboard
 	const turnCounter = createCounter();
+	let gameStart = false;
+	let gameOver = false;
 
 	// Create player objects
 	const player1 = player('Andrew');
@@ -97,12 +99,10 @@ const GameController = (function () {
 		if (turnCounter.value() % 2 == 1) {
 			console.log('turn: ' + turnCounter.value());
 			playerMark = p1mark;
-			// turnCount++;
 			return playerMark;
 		} else {
 			console.log('turn: ' + turnCounter.value());
 			playerMark = p2mark;
-			// turnCount++;
 			return playerMark;
 		}
 	}
@@ -110,22 +110,28 @@ const GameController = (function () {
 	const switchPlayer = () => turnCounter.increment();
 
 	function playRound(index) {
-		const currentPlayerMark = getCurrentPlayer();
-		// Wtf so this runs the function AND reads the return value at the same time?
-		if (board.setCell(index, currentPlayerMark)) {
-			const winner = checkWin();
-			if (winner) {
-				console.log('winner: ' + winner);
-				return;
+		if (gameOver == false) {
+			const currentPlayerMark = getCurrentPlayer();
+			// Wtf so this runs the function AND reads the return value at the same time?
+			if (board.setCell(index, currentPlayerMark)) {
+				const winner = checkWin();
+				if (winner) {
+					console.log('winner: ' + winner);
+					gameOver = true;
+					return;
+				}
+				if (checkTie()) {
+					console.log('tie');
+					gameOver = true;
+					return;
+				}
+				console.log(board.getBoard());
+				switchPlayer();
+			} else {
+				console.log('invalid move, try again');
 			}
-			if (checkTie()) {
-				console.log('tie');
-				return;
-			}
-			console.log(board.getBoard());
-			switchPlayer();
 		} else {
-			console.log('invalid move, try again');
+			console.log('game over');
 		}
 	}
 
@@ -136,6 +142,7 @@ const GameController = (function () {
 	function resetBoard() {
 		board.resetBoard();
 		console.log(board.getBoard());
+		gameOver = false;
 	}
 
 	return {
@@ -144,11 +151,12 @@ const GameController = (function () {
 		switchPlayer,
 		playRound,
 		resetBoard,
+		gameOver,
 	};
 })();
 
 // Handles DOM manipulation
-const DisplayController = (function () {
+const DisplayController = function () {
 	const Board = Gameboard;
 	const Controller = GameController;
 
@@ -163,9 +171,10 @@ const DisplayController = (function () {
 			const li = document.createElement('li');
 			li.classList.add('cell');
 			li.setAttribute('id', cellIndex);
+			li.textContent = cell; // Displays playerMark in cell
 			li.addEventListener('click', (event) => eventHandler(event));
-			cellIndex++;
 			gameBoard.appendChild(li);
+			cellIndex++;
 		}
 	}
 
@@ -180,13 +189,10 @@ const DisplayController = (function () {
 		printBoard();
 	}
 
+	// Each time a square is clicked, call playRound()
 	function eventHandler(event) {
-		const currentPlayerMark = Controller.getCurrentPlayer();
 		const target = event.target;
 		const cell = Number(target.getAttribute('id'));
-		console.log(cell);
-		// cell.textContent = game.playerMark;
-		console.log(currentPlayerMark);
 
 		Controller.playRound(cell);
 
@@ -194,11 +200,47 @@ const DisplayController = (function () {
 	}
 
 	printBoard();
+
+	return { refreshBoard };
+};
+
+const Game = (() => {
+	const game = GameController;
+	let displayControllerInstance = null;
+
+	const StartGame = document.getElementById('StartGame');
+	StartGame.addEventListener('click', () => {
+		// Prevent starting multiple games simultaneously
+		if (game.gameStart != true) {
+			displayControllerInstance = DisplayController();
+			game.start();
+			game.gameStart = true;
+		} else {
+			return;
+		}
+	});
+
+	const Reset = document.getElementById('Reset');
+	Reset.addEventListener('click', () => {
+		game.resetBoard();
+		console.log(displayControllerInstance);
+		// const displayController = DisplayController; // Problem is it's calling DisplayController() every time
+		displayControllerInstance.refreshBoard();
+	});
+
+	console.log("Instructions: Start game with 'Game.start()");
+	console.log("Instructions: Place marker with 'game.playRound(index)");
+
+	const start = () => {
+		DisplayController();
+		game.start();
+	};
+
+	const play = (index) => {
+		game.playRound(index);
+		// const displayController = DisplayController; // Problem is it's calling DisplayController() every time
+		displayControllerInstance.refreshBoard();
+	};
+
+	return { start, play };
 })();
-
-console.log("Instructions: Place marker with 'game.playRound(x,y)");
-
-const game = GameController;
-game.start();
-
-const renderGame = DisplayController;
