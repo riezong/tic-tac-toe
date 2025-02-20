@@ -41,6 +41,15 @@ li {
 }
 
 #gameBoard {
+    /* width: 400px;
+    height: 400px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 0; */
+}
+
+.showGameBoard {
     width: 400px;
     height: 400px;
     display: grid;

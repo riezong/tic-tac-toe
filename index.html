@@ -10,19 +10,21 @@
     <div class="container">
         <div id="gameStatus">
             <h1>Tic-Tac-Toe</h1>
-            <p>Turn:</p>
+            <div class="turnCounter"></div>
+            <div class="player1"></div>
+            <div class="player2"></div>
         </div>
         <div id=gameBoard></div>
         <div class="buttons">
             <div class="player">
                 <label for="player1">Player 1</label>
                 <input type="text" id="player1" value="X">
-                <input type="button" value="submit">
+                <input type="button" id="setPlayer1" value="submit">
             </div>
             <div class="player">
                 <label for="player1">Player 2</label>
                 <input type="text" id="player2" value="O">
-                <input type="button" value="submit">
+                <input type="button" id="setPlayer2" value="submit">
             </div>
             <button id="StartGame">Start Game</button>
             <button id="Reset">Reset</button>
